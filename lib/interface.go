@@ -874,7 +874,6 @@ func GetUserByToken(token string) (User, error) {
 }
 
 func HashPassword(password string) string {
-	// 将密码进行哈希，不加盐
 	hash := sha256.New()
 	hash.Write([]byte(password))
 	hashedPassword := base64.StdEncoding.EncodeToString(hash.Sum(nil))
@@ -892,7 +891,6 @@ func In(target int, strArray []int) bool {
 
 func InitDatabase(config Config) {
 	// 初始化数据库，从配置文件中读取数据库配置，DEV模式输出日志，PROD模式不输出日志
-	// 检测data文件夹是否存在，不存在则创建
 	if _, err := os.Stat("data"); os.IsNotExist(err) {
 		err := os.Mkdir("data", os.ModePerm)
 		if err != nil {
@@ -1001,8 +999,6 @@ func ReadConfig(config *Config) {
 
 func VerifyToken(token string, tokenType string) (bool, int, string) {
 	// 验证Token有效性
-	// tokenType为"token"或"refresh_token"
-	// 先找到对应的用户，用户不存在则返回false
 	var user User
 	if tokenType == "token" {
 		UserDB.Where("token = ?", token).First(&user)
@@ -1018,9 +1014,7 @@ func VerifyToken(token string, tokenType string) (bool, int, string) {
 	// 用用户密钥解析Token
 	secretKey := user.SecretKey
 
-	// 解析 JWT 令牌为json
 	parsedToken, _ := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		// 在实际应用中，你可能需要提供用于验证签名的密钥
 		return []byte(secretKey), nil
 	})
 
